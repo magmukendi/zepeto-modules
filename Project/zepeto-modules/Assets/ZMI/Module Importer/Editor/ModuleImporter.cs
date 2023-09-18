@@ -200,11 +200,26 @@ namespace zmi
                     OpenLocalizeURL(url);
                 }
 
+                
+                ImportButtonGUI();
+                RemoveButtonGUI();
+
+                GUILayout.EndHorizontal();
+
+                GUILayout.Box("", GUILayout.ExpandWidth(true), GUILayout.Height(3));
+            }
+
+            private void ImportButtonGUI()
+            {
+                string downloadedVersion = VersionHandler.VersionCheck(StringUtil.GetRemoveSpace(_selectedData.Title));
                 string UIImportButton = ModuleStrings.UI_BUTTON_IMPORT;
-                if(VersionHandler.VersionCheck(StringUtil.GetRemoveSpace(_selectedData.Title)) != ModuleStrings.UNKNOWN_VERSION)
+                bool moduleIsImportable = true;
+                if(downloadedVersion != ModuleStrings.UNKNOWN_VERSION)
                 {
                     UIImportButton = ModuleStrings.UI_BUTTON_UPDATE;
+                    moduleIsImportable = ModuleInstaller.isUpdatable(downloadedVersion, _selectedData.LatestVersion);
                 }
+                EditorGUI.BeginDisabledGroup(!moduleIsImportable);
                 if (GUILayout.Button(UIImportButton + _selectedData.LatestVersion, GUILayout.Height(20),
                         GUILayout.ExpandWidth(false)))
                 {
@@ -213,25 +228,20 @@ namespace zmi
 
                     if (UIImportButton == ModuleStrings.UI_BUTTON_UPDATE)
                     {
-                        ModuleInstaller.UpdateModule(title, version, this);
+                        ModuleInstaller.UpdateModule(_selectedData.Title, version, this);
                     }
                     else
                     {
                         EditorCoroutineUtility.StartCoroutine(ModuleInstaller.ImportModule(title, version), this);
+
                     }
                 }
-
-                RemoveButtonGUI();
-
-                GUILayout.EndHorizontal();
-
-                GUILayout.Box("", GUILayout.ExpandWidth(true), GUILayout.Height(3));
+                EditorGUI.EndDisabledGroup();
             }
-
             private void RemoveButtonGUI()
             {
                 string downloadedVersion = VersionHandler.VersionCheck(StringUtil.GetRemoveSpace(_selectedData.Title));
-                bool moduleIsRemovable = ModuleInstaller.IsRemovable(downloadedVersion, _selectedData);
+                bool moduleIsRemovable = ModuleInstaller.IsRemovable(downloadedVersion, _selectedData.Title);
                 EditorGUI.BeginDisabledGroup(!moduleIsRemovable);
                 if (GUILayout.Button(ModuleStrings.UI_BUTTON_REMOVE, GUILayout.Height(20),
                         GUILayout.ExpandWidth(false)))
