@@ -14,6 +14,7 @@ namespace zmi.Constant
         /*DIALOG TEXT */
         public const string DIALOG_REMOVE_MESSAGE = "The following folder will be removed: ";
         public const string DIALOG_REMOVE_CONFIRM_BUTTON = "Remove";
+        public const string DIALOG_UPDATE_CONFIRM_BUTTON = "Update";
         public const string DIALOG_REMOVE_CANCEL_BUTTON = "Cancel";
         public const string DIALOG_OK_BUTTON = "Ok";
         public const string DIALOG_REMOVE_DEPENDENCY_MESSAGE = "You first need to remove the following dependencies: ";
@@ -24,6 +25,7 @@ namespace zmi.Constant
         /* UI BUTTON */
         public const string UI_BUTTON_REMOVE = "Remove";
         public const string UI_BUTTON_IMPORT = "Import ";
+        public const string UI_BUTTON_UPDATE = "Update ";
         public const string UI_BUTTON_VIEW_IMPORT_GUIDE = "View Import Guide";
         public const string UI_TEXT_REPORT_ISSUE = "Report Issue";
         public const string UI_TEXT_CONTRIBUTE = "Contribute";
