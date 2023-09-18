@@ -199,13 +199,26 @@ namespace zmi
                         ModulePath.README_PATH);
                     OpenLocalizeURL(url);
                 }
-                
-                if (GUILayout.Button(ModuleStrings.UI_BUTTON_IMPORT + _selectedData.LatestVersion, GUILayout.Height(20),
+
+                string UIImportButton = ModuleStrings.UI_BUTTON_IMPORT;
+                if(VersionHandler.VersionCheck(StringUtil.GetRemoveSpace(_selectedData.Title)) != ModuleStrings.UNKNOWN_VERSION)
+                {
+                    UIImportButton = ModuleStrings.UI_BUTTON_UPDATE;
+                }
+                if (GUILayout.Button(UIImportButton + _selectedData.LatestVersion, GUILayout.Height(20),
                         GUILayout.ExpandWidth(false)))
                 {
                     string title = StringUtil.GetRemoveSpace(_selectedData.Title);
                     string version = "v" + _selectedData.LatestVersion;
-                    EditorCoroutineUtility.StartCoroutine(ModuleInstaller.ImportModule(title, version), this);
+
+                    if (UIImportButton == ModuleStrings.UI_BUTTON_UPDATE)
+                    {
+                        ModuleInstaller.UpdateModule(title, version, this);
+                    }
+                    else
+                    {
+                        EditorCoroutineUtility.StartCoroutine(ModuleInstaller.ImportModule(title, version), this);
+                    }
                 }
 
                 RemoveButtonGUI();
@@ -223,7 +236,7 @@ namespace zmi
                 if (GUILayout.Button(ModuleStrings.UI_BUTTON_REMOVE, GUILayout.Height(20),
                         GUILayout.ExpandWidth(false)))
                 {
-                    ModuleInstaller.RemoveModule(_selectedData.Title, false);
+                    ModuleInstaller.RemoveModule(_selectedData.Title);
                 }
                 EditorGUI.EndDisabledGroup();
             }
