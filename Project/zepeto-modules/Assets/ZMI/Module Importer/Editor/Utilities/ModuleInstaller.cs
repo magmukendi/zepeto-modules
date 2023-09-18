@@ -1,6 +1,7 @@
 using System.Collections;
 using System.IO;
 using System.Net;
+using Unity.EditorCoroutines.Editor;
 using UnityEditor;
 using UnityEngine;
 using zmi.Internal;
@@ -38,16 +39,10 @@ namespace zmi.Utilities
             }
         }
 
-        public static void RemoveModule(string moduleName, bool isUpdate)
+        public static void RemoveModule(string moduleName)
         {
             DirectoryPath directoryPaths = FileUtil.GenerateFolderPaths(moduleName);
-            string message = ModuleStrings.DIALOG_REMOVE_MESSAGE ;
-            
-            if (isUpdate)
-            {
-                message = ModuleStrings.DIALOG_UPDATE_MESSAGE;
-            }
-            
+  
             // Returns an error message if it could not find the directory to remove
             if (!FileUtil.CheckIfDirectoryExist(moduleName))
             {
@@ -56,36 +51,70 @@ namespace zmi.Utilities
             }
             
             //  Remove the Directory if it is located in 'Assets/ZMI"
-            if (Directory.Exists(directoryPaths.newPath))
-            {
-                
-                if(UiHandler.TryDialog(StringUtil.renameModule(moduleName), StringUtil.GenerateDialogMessage(message, new []{directoryPaths.newPath},false), ModuleStrings.DIALOG_REMOVE_CONFIRM_BUTTON, ModuleStrings.DIALOG_REMOVE_CANCEL_BUTTON))
-                {
-                    FileUtil.DeleteDirectory(directoryPaths.newPath);
-                }
-            }
+            DeleteModulePath(directoryPaths.newPath, moduleName, ModuleStrings.DIALOG_REMOVE_MESSAGE,  ModuleStrings.DIALOG_REMOVE_CONFIRM_BUTTON, false);
+            
             // Remove the Directory if it is located in "Assets/"
-            if (Directory.Exists(directoryPaths.oldPath))
+            DeleteModulePath(directoryPaths.oldPath, moduleName,ModuleStrings.DIALOG_REMOVE_MESSAGE,ModuleStrings.DIALOG_REMOVE_CONFIRM_BUTTON, false);
+
+        }
+
+        private static bool DeleteModulePath(string modulePath, string moduleName, string message, string confirmButtonText, bool isUpdate )
+        {
+            if (Directory.Exists(modulePath))
             {
-                
-                if(UiHandler.TryDialog(StringUtil.renameModule(moduleName), StringUtil.GenerateDialogMessage(message, new []{directoryPaths.oldPath},false), ModuleStrings.DIALOG_REMOVE_CONFIRM_BUTTON, ModuleStrings.DIALOG_REMOVE_CANCEL_BUTTON))
+                if(UiHandler.TryDialog(StringUtil.renameModule(moduleName), StringUtil.GenerateDialogMessage(message, new []{modulePath},false), confirmButtonText, ModuleStrings.DIALOG_REMOVE_CANCEL_BUTTON))
                 {
-                    FileUtil.DeleteDirectory(directoryPaths.oldPath);
+                    FileUtil.DeleteDirectory(modulePath);
+                    if (isUpdate)
+                    {
+                        return true;
+                    }
                 }
+                
             }
 
+            return false;
+        }
+
+        public static void UpdateModule(string moduleName, string version, object owner)
+        {
+            DirectoryPath directoryPaths = FileUtil.GenerateFolderPaths(moduleName);
+
+            if (!FileUtil.CheckIfDirectoryExist(moduleName))
+            {
+                if (UiHandler.ErrorDialog(ModuleStrings.ERR_TITLE_MODULE_FOLDER_NOT_FOUND,
+                        ModuleStrings.ERR_MESSAGE_FOLDER_DOESNT_EXIST));
+            }
+            EditorApplication.LockReloadAssemblies();
+
+            if (DeleteModulePath(directoryPaths.newPath, moduleName,ModuleStrings.DIALOG_UPDATE_MESSAGE, ModuleStrings.DIALOG_UPDATE_CONFIRM_BUTTON, true) ||
+                DeleteModulePath(directoryPaths.oldPath, moduleName,ModuleStrings.DIALOG_REMOVE_MESSAGE, ModuleStrings.DIALOG_UPDATE_CONFIRM_BUTTON, true))
+            {
+                EditorCoroutineUtility.StartCoroutine(ImportModule(moduleName, version), owner);
+            }
+            EditorApplication.UnlockReloadAssemblies();
         }
         
         // this method checks if the module is removable
-        public static bool IsRemovable(string version, Content module)
+        public static bool IsRemovable(string version, string moduleName)
         {
-            if (module.Title != ModuleStrings.MODULE_IMPORTER &&
+            if (moduleName != ModuleStrings.MODULE_IMPORTER &&
                 version != ModuleStrings.UNKNOWN_VERSION )
             {
                 return true;
             }
 
             return false;
+        }
+
+        public static bool isUpdatable(string version, string latestVersion)
+        {
+            if (version == latestVersion)
+            {
+                return false;
+            }
+
+            return true;
         }
     }
 }
